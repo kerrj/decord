@@ -145,7 +145,7 @@ VideoReader::~VideoReader(){
 
 void VideoReader::SetVideoStream(int stream_nb) {
     if (!fmt_ctx_) return;
-    AVCodec *dec;
+    const AVCodec *dec;
     int st_nb = av_find_best_stream(fmt_ctx_.get(), AVMEDIA_TYPE_VIDEO, stream_nb, -1, &dec, 0);
     // LOG(INFO) << "find best stream: " << st_nb;
     CHECK_GE(st_nb, 0) << "ERROR cannot find video stream with wanted index: " << stream_nb;
@@ -162,7 +162,7 @@ void VideoReader::SetVideoStream(int stream_nb) {
 #ifdef DECORD_USE_CUDA
         // note: cuda threaded decoder will modify codecpar
         decoder_ = std::unique_ptr<ThreadedDecoderInterface>(new cuda::CUThreadedDecoder(
-            ctx_.device_id, codecpar.get(), fmt_ctx_->iformat));
+            ctx_.device_id, codecpar.get(), const_cast<AVInputFormat*>(fmt_ctx_->iformat)));
 #else
         LOG(FATAL) << "CUDA not enabled. Requested context GPU(" << ctx_.device_id << ").";
 #endif
